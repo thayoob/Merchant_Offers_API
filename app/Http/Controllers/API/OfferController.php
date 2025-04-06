@@ -18,7 +18,6 @@ class OfferController extends Controller
                 ->whereHas('merchant', function ($query) {
                     $query->where('status', 'active');
                 })
-                ->where('valid_until', '>=', now())
                 ->latest()
                 ->paginate($request->get('per_page', 10));
 
@@ -75,10 +74,6 @@ class OfferController extends Controller
         try {
             $validated = $request->validated();
 
-            if (isset($validated['discount_percentage']) && isset($validated['offer_amount'])) {
-                unset($validated['offer_amount']);
-            }
-
             $offer = Offer::create($validated);
 
             return ApiResponseResource::successResponse(
@@ -103,10 +98,6 @@ class OfferController extends Controller
             }
 
             $validated = $request->validated();
-
-            if (isset($validated['discount_percentage']) && isset($validated['offer_amount'])) {
-                unset($validated['offer_amount']);
-            }
 
             $offer->update($validated);
 
