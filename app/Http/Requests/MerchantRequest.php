@@ -17,7 +17,7 @@ class MerchantRequest extends FormRequest
 
     public function rules(): array
     {
-        $merchantId = $this->route('merchant')?->id;
+        $merchantId = $this->route('merchant');
 
         return [
             'name' => ['required', 'string', 'max:255'],
