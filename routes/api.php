@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\OfferController;
 use App\Http\Controllers\API\MerchantController;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -23,5 +24,13 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{merchant}', [MerchantController::class, 'show']);
         Route::put('/{merchant}', [MerchantController::class, 'update']);
         Route::delete('/{merchant}', [MerchantController::class, 'destroy']);
+    });
+
+    Route::prefix('offers')->group(function () {
+        Route::get('/', [OfferController::class, 'index']);
+        Route::post('/', [OfferController::class, 'store']);
+        Route::get('/{offer}', [OfferController::class, 'show']);
+        Route::put('/{offer}', [OfferController::class, 'update']);
+        Route::delete('/{offer}', [OfferController::class, 'destroy']);
     });
 });
