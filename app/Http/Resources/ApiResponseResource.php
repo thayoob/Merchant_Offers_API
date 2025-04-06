@@ -13,6 +13,7 @@ class ApiResponseResource extends JsonResource
     const ACTION_DELETE = 'delete';
     const ACTION_UPDATE = 'update';
 
+    public static string $User = 'User';
     public static string $Merchant = 'Merchant';
     public static string $Offer = 'Offer';
     public static string $VoucherCode = 'VoucherCode';
