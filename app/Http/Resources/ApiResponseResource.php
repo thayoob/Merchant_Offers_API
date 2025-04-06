@@ -33,14 +33,21 @@ class ApiResponseResource extends JsonResource
         return $attributes;
     }
 
-    public static function failureResponse(string $message, int $statusCode = 400): JsonResponse
+    public static function failureResponse(string $message, int $statusCode = 400, $errors = []): JsonResponse
     {
-        return response()->json([
+        $response = [
             'status' => $statusCode,
             'success' => false,
             'message' => $message,
-        ], $statusCode);
+        ];
+
+        if (!empty($errors)) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $statusCode);
     }
+
 
     public static function successResponse(
         string $action,
