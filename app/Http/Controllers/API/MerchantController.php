@@ -14,8 +14,7 @@ class MerchantController extends Controller
     public function index(Request $request)
     {
         try {
-            $merchants = Merchant::where('status', Merchant::STATUS_ACTIVE)
-                ->latest()
+            $merchants = Merchant::latest()
                 ->paginate($request->get('per_page', 10));
 
             $response = [
@@ -43,7 +42,7 @@ class MerchantController extends Controller
     public function show($id)
     {
         try {
-            $merchant = Merchant::where('status', Merchant::STATUS_ACTIVE)->find($id);
+            $merchant = Merchant::find($id);
 
             if (!$merchant) {
                 return ApiResponseResource::failureResponse('Merchant not found', 404);

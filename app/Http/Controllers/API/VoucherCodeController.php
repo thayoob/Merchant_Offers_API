@@ -19,7 +19,6 @@ class VoucherCodeController extends Controller
                     $query->where('valid_until', '>=', now());
                 })
                 ->where('valid_date', '>=', now())
-                ->where('status', VoucherCode::STATUS_ACTIVE)
                 ->latest()
                 ->paginate($request->get('per_page', 10));
 
