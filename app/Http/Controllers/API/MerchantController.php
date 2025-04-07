@@ -109,6 +109,17 @@ class MerchantController extends Controller
                 return ApiResponseResource::failureResponse('Merchant not found', 404);
             }
 
+            $hasActiveOffers = $merchant->offers()
+                ->where('valid_until', '>=', now())
+                ->exists();
+
+            if ($hasActiveOffers) {
+                return ApiResponseResource::failureResponse(
+                    'Cannot delete merchant with active offers. Please expire or delete the offers first.',
+                    422
+                );
+            }
+
             $merchant->delete();
 
             return ApiResponseResource::successResponse(

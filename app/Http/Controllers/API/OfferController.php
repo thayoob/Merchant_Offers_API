@@ -14,15 +14,34 @@ class OfferController extends Controller
     public function index(Request $request)
     {
         try {
-            $offers = Offer::with('merchant')
+            $offers = Offer::with('merchant', 'voucherCodes')
                 ->whereHas('merchant', function ($query) {
                     $query->where('status', 'active');
                 })
                 ->latest()
                 ->paginate($request->get('per_page', 10));
 
+            $transformedOffers = collect($offers->items())->map(function ($offer) {
+                $status = now()->lt($offer->valid_until)
+                    ? (now()->gt($offer->valid_from) ? 'active' : 'active')
+                    : 'expired';
+
+                return [
+                    'id' => $offer->id,
+                    'title' => $offer->title,
+                    'description' => $offer->description,
+                    'discount_percentage' => $offer->discount_percentage,
+                    'offer_amount' => $offer->offer_amount,
+                    'valid_from' => $offer->valid_from,
+                    'valid_until' => $offer->valid_until,
+                    'merchant' => $offer->merchant,
+                    'voucher_codes' => $offer->voucherCodes,
+                    'status' => $status,
+                ];
+            });
+
             $response = [
-                'offers' => $offers->items(),
+                'offers' => $transformedOffers,
                 'pagination' => [
                     'total' => $offers->total(),
                     'current_page' => $offers->currentPage(),

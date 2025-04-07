@@ -15,12 +15,15 @@ class VoucherCodeController extends Controller
     {
         try {
             $voucherCodes = VoucherCode::with('offer')
-                ->whereHas('offer', function ($query) {
-                    $query->where('valid_until', '>=', now());
-                })
-                ->where('valid_date', '>=', now())
                 ->latest()
                 ->paginate($request->get('per_page', 10));
+
+            $voucherCodes->getCollection()->transform(function ($voucher) {
+                $voucher->status = now()->greaterThan($voucher->valid_date)
+                    ? VoucherCode::STATUS_EXPIRED
+                    : VoucherCode::STATUS_ACTIVE;
+                return $voucher;
+            });
 
             $response = [
                 'voucher_codes' => $voucherCodes->items(),
@@ -74,7 +77,25 @@ class VoucherCodeController extends Controller
     public function store(VoucherCodeRequest $request)
     {
         try {
-            $voucherCode = VoucherCode::create($request->validated());
+            $data = $request->validated();
+
+            if (empty($data['valid_date'])) {
+                $offer = \App\Models\Offer::find($data['offer_id']);
+                if ($offer && $offer->valid_until) {
+                    $data['valid_date'] = $offer->valid_until;
+                }
+            }
+
+            if (now()->greaterThan($data['valid_date'])) {
+                return ApiResponseResource::failureResponse(
+                    'Cannot create a voucher for an offer that has already expired.',
+                    422
+                );
+            }
+
+            $data['status'] = VoucherCode::STATUS_ACTIVE;
+
+            $voucherCode = VoucherCode::create($data);
 
             return ApiResponseResource::successResponse(
                 action: ApiResponseResource::ACTION_INSERT,
@@ -87,6 +108,7 @@ class VoucherCodeController extends Controller
             return ApiResponseResource::failureResponse('Failed to create voucher code.');
         }
     }
+
 
     public function update(VoucherCodeRequest $request, $id)
     {
@@ -101,7 +123,20 @@ class VoucherCodeController extends Controller
                 return ApiResponseResource::failureResponse('Cannot update an expired voucher code.', 403);
             }
 
-            $voucherCode->update($request->validated());
+            $data = $request->validated();
+
+            if (empty($data['valid_date'])) {
+                $offer = \App\Models\Offer::find($data['offer_id']);
+                if ($offer && $offer->valid_until) {
+                    $data['valid_date'] = $offer->valid_until;
+                }
+            }
+
+            $data['status'] = now()->greaterThan($data['valid_date'])
+                ? VoucherCode::STATUS_EXPIRED
+                : VoucherCode::STATUS_ACTIVE;
+
+            $voucherCode->update($data);
 
             return ApiResponseResource::successResponse(
                 action: ApiResponseResource::ACTION_UPDATE,

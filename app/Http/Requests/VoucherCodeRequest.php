@@ -29,17 +29,20 @@ class VoucherCodeRequest extends FormRequest
             ],
             'offer_id' => ['required', 'exists:offers,id'],
             'valid_date' => [
-                'required',
+                'nullable',
                 'date',
                 'after_or_equal:today',
                 function ($attribute, $value, $fail) {
-                    $offerValidUntil = $this->offer->valid_until ?? null;
-                    if ($offerValidUntil && $value > $offerValidUntil) {
+                    $offer = \App\Models\Offer::find($this->offer_id);
+                    if (!$offer) return;
+
+                    $validUntil = $offer->valid_until;
+                    if ($value && $validUntil && $value > $validUntil) {
                         $fail('The valid date cannot be after the offer expiration date.');
                     }
                 }
             ],
-            'status' => ['required', Rule::in(VoucherCode::getStatuses())],
+            'status' => ['nullable', Rule::in(VoucherCode::getStatuses())],
         ];
     }
 
