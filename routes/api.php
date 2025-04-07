@@ -44,11 +44,3 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/offer/{offer}', [VoucherCodeController::class, 'getByOffer']);
     });
 });
-
-Route::prefix('merchants')->group(function () {
-    Route::get('/', [MerchantController::class, 'index']);
-    Route::post('/', [MerchantController::class, 'store']);
-    Route::get('/{merchant}', [MerchantController::class, 'show']);
-    Route::put('/{merchant}', [MerchantController::class, 'update']);
-    Route::delete('/{merchant}', [MerchantController::class, 'destroy']);
-});
